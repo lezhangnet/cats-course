@@ -89,6 +89,11 @@ object Traversing {
   val allBandwidthsCats2 = servers.traverse(getBandwidth)
 
   def main(args: Array[String]): Unit = {
+    println("MyTraversing")
+
+    println(allBandwidthsTraverse)
+    println(allBandwidthsSequence)
+
     println(allPairs)
     println(allTriples)
     println(allTrue)

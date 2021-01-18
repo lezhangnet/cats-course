@@ -39,6 +39,32 @@ object DataValidation {
     else Left(isNotEven ++ isNegative ++ isToBig ++ isNotPrime)
   }
 
+  // from a user on slack
+  import cats.syntax.either._
+  def testNumber2(n: Int): Either[List[String], Int] = {
+    val isPrimeError = if (testPrime(n)) None else Some("n must be a prime")
+    val isPositiveError = if (n >= 0) None else Some("n must be non-negative")
+    val isLessThan100Error = if (n <= 100) None else Some("n must <= 100")
+    val isEvenError = if(n % 2 == 0) None else Some("n must be even")
+    List(isPrimeError, isPositiveError, isLessThan100Error, isEvenError).flatten match {
+      case e @ _ :: _ ⇒ Either.left(e) // i.e. non empty list
+      case _ ⇒ Either.right(n)
+    }
+  }
+
+  // improve from 2 within match{}
+  import cats.syntax.either._
+  def testNumber3(n: Int): Either[List[String], Int] = {
+    val isPrimeError = if (testPrime(n)) None else Some("n must be a prime")
+    val isPositiveError = if (n >= 0) None else Some("n must be non-negative")
+    val isLessThan100Error = if (n <= 100) None else Some("n must <= 100")
+    val isEvenError = if(n % 2 == 0) None else Some("n must be even")
+    List(isPrimeError, isPositiveError, isLessThan100Error, isEvenError).flatten match {
+      case Nil => Either.right(n)
+      case e => Either.left(e) // i.e. non empty list
+    }
+  }
+
   import cats.instances.list._
   implicit val combineIntMax: Semigroup[Int] = Semigroup.instance[Int](Math.max)
   def validateNumber(n: Int): Validated[List[String], Int] =
@@ -62,6 +88,7 @@ object DataValidation {
   // backwards
   aValidValue.toOption
   aValidValue.toEither
+  // NO toTry
 
   // TODO 2 - form validation
   object FormValidation {
@@ -93,7 +120,7 @@ object DataValidation {
       - password must have >= 10 characters
      */
     def validateForm(form: Map[String, String]): FormValidation[String] =
-      getValue(form, "Name").andThen(name => nonBlank(name, "Name"))
+      getValue(form, "Name").andThen(nonBlank(_, "Name"))
       .combine(getValue(form, "Email").andThen(emailProperForm))
       .combine(getValue(form, "Password").andThen(passwordCheck))
       .map(_ => "User registration complete.")
@@ -104,12 +131,31 @@ object DataValidation {
   val anError:Validated[String, Int] = "Something went wrong".invalid[Int]
 
   def main(args: Array[String]): Unit = {
+    println("MyDataValidation")
+
+    println(testNumber(5))
+    println(testNumber2(5))
+    println(testNumber2(2))
+    println(testNumber3(5))
+    println(testNumber3(2))
+
+    println("----- Validate -----")
+    println(validateNumber(-5)) // Invalid(List(Number must be even, Number must be non-negative))
+    println(validateNumber(2)) // Valid(2)
+
     val form = Map(
       "Name" -> "",
       "Email" -> "danielrockthejvm.com",
       "Password" -> "Rockthejvm1!"
     )
-
     println(FormValidation.validateForm(form))
+
+    val goodform = Map(
+      "Name" -> "zhale",
+      "Email" -> "daniel@rockthejvm.com",
+      "Password" -> "Rockthejvm1!"
+    )
+
+    println(FormValidation.validateForm(goodform))
   }
 }

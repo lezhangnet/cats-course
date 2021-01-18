@@ -23,6 +23,7 @@ object MonadTransformers {
   // either transformer
   import cats.data.EitherT
   val listOfEithers: EitherT[List, String, Int] = EitherT(List(Left("something wrong"), Right(43), Right(2)))
+
   implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(8))
   val futureOfEither: EitherT[Future, String, Int] = EitherT.right(Future(45)) // wrap over Future(Right(45))
 
@@ -43,6 +44,19 @@ object MonadTransformers {
   def getBandwidth(server: String): AsyncResponse[Int] = bandwidths.get(server) match {
     case None => EitherT.left(Future(s"Server $server unreachable"))
     case Some(b) => EitherT.right(Future(b))
+  }
+
+  def canWithstandSurge1(s1: String, s2: String): AsyncResponse[Boolean] = for {
+    b1 <- getBandwidth(s1)
+    b2 <- getBandwidth(s2)
+  } yield (b1 + b2) > 250
+
+  def generateReport(s1: String, s2: String): AsyncResponse[String] = {
+    canWithstandSurge1(s1, s2).transform {
+      case Left(value) => Left("left: " + value)
+      case Right(false) => Left("right: but not enough: ")
+      case Right(true) => Right("good")
+    }
   }
 
   // TODO 1
@@ -66,9 +80,16 @@ object MonadTransformers {
   // Future[Either[String, Boolean]] ---- Future[Either[String, String]]
 
   def main(args: Array[String]): Unit = {
+    println("MyMonadTransformers")
+
+    // OptionT
     println(listOfTuples.value)
+
+    // EitherT
     val resultFuture = generateTrafficSpikeReport("server2.rockthejvm.com", "server3.rockthejvm.com").value
     resultFuture.foreach(println)
+
+    generateReport("server1.rockthejvm.com", "server2.rockthejvm.com").value.foreach(println)
   }
 
 }

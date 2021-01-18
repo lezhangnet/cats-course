@@ -1,5 +1,8 @@
 package part2abstractMath
 
+import cats._
+import cats.implicits._
+
 object Semigroups {
 
   // Semigroups COMBINE elements of the same type
@@ -31,11 +34,19 @@ object Semigroups {
   val aStringConcat = "we like " |+| "semigroups"
   val aCombinedExpense = Expense(4, 80) |+| Expense(56, 46)
 
+  val one: Option[Int] = Option(1)
+  val two: Option[Int] = Option(2)
+  val n: Option[Int] = None
+  println("|+|:" + (one |+| two)) // Option(3) // Error:(91, 17) value |+| is not a member of Option[Int] ???
+
   // TODO 2: implement reduceThings2 with the |+|
   def reduceThings2[T : Semigroup](list: List[T]): T = list.reduce(_ |+| _)
 
   def main(args: Array[String]): Unit = {
-    println(intCombination)
+    println("MySemigroups")
+
+    println(Semigroup[Int].combine(1, 2)) // 3
+    println(intCombination) // 48
     println(stringCombination)
 
     // specific API
@@ -47,8 +58,10 @@ object Semigroups {
     // general API
     println(reduceThings(numbers)) // compiler injects the implicit Semigroup[Int]
     println(reduceThings(strings)) // compiler injects the implicit Semigroup[String]
-    import cats.instances.option._
 
+    println("--- Option[] ---")
+    import cats.instances.option._
+    println(Semigroup[Option[Int]].combine(Option(1), None)) // Some(1) ?! NOT None ?!
     // compiler will produce an implicit Semigroup[Option[Int]] whose combine method returns another option with the summed elements
     val numberOptions: List[Option[Int]] = numbers.map(n => Option(n))
     println(reduceThings(numberOptions)) // an Option[Int] containing the sum of all the numbers
@@ -63,5 +76,21 @@ object Semigroups {
 
     // test ex 2
     println(reduceThings2(expenses))
+
+    // import cats.implicits._ // this seems to be eclipse some imports, and will cause |+| to fail below ???
+    println(Semigroup[Int => Int].combine(_ + 1, _ * 10).apply(6)) // 67
+
+    val aMap       = Map("foo" -> Map("bar" -> 5))
+    val anotherMap = Map("foo" -> Map("bar" -> 6))
+    val combinedMap = Semigroup[Map[String, Map[String, Int]]].combine(aMap, anotherMap)
+    println(combinedMap) // Map(foo -> Map(bar -> 11))
+
+    val one: Option[Int] = Option(1)
+    val two: Option[Int] = Option(2)
+    val n: Option[Int] = None
+    println(one |+| two) // Option(3) // Error:(91, 17) value |+| is not a member of Option[Int] ???
+    println(n |+| two) // Option(2)
+    println(n |+| n) // None
+    println(two |+| n) // Option(2)
   }
 }

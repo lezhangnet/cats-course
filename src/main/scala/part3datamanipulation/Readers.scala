@@ -24,7 +24,7 @@ object Readers {
   val dbReader: Reader[Configuration, DbConnection] = Reader(conf => DbConnection(conf.dbUsername, conf.dbPassword))
   val dbConn = dbReader.run(config)
 
-  // Reader[I, O]
+  // Reader[Input, Output]
   val danielsOrderStatusReader: Reader[Configuration, String] = dbReader.map(dbcon => dbcon.getOrderStatus(55))
   val danielsOrderStatus: String = danielsOrderStatusReader.run(config)
 
@@ -54,6 +54,18 @@ object Readers {
     def sendEmail(address: String, contents: String) = s"From: $emailReplyTo; to: $address >>> $contents"
   }
 
+  def emailUser2(username: String, useremail: String): String = {
+    val emailServiceReader: Reader[Configuration, EmailService] = Reader(conf => EmailService(conf.emailReplyTo))
+
+    val emailReader: Reader[Configuration, String] = for {
+      id <- dbReader.map(_.getLastOrderId(username))
+      status <- dbReader.map(_.getOrderStatus(id))
+      email <- emailServiceReader.map(_.sendEmail(useremail, status))
+    } yield email
+
+    emailReader.run(config)
+  }
+
   // TODO 1 - email a user
   def emailUser(username: String, userEmail: String): String = {
     // fetch the status of their last order
@@ -74,5 +86,6 @@ object Readers {
   def main(args: Array[String]): Unit = {
     println(getLastOrderStatus("daniel"))
     println(emailUser("daniel", "daniel@rtjvm.com"))
+    println(emailUser2("zhale", "zhale@zhale.com"))
   }
 }

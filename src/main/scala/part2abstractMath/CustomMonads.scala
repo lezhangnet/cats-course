@@ -9,7 +9,8 @@ object CustomMonads {
     override def pure[A](x: A): Option[A] = Option(x)
     override def flatMap[A, B](fa: Option[A])(f: A => Option[B]): Option[B] = fa.flatMap(f)
 
-    // tailrecM does NOT stack-overflow
+    // tailRecM does NOT stack-overflow
+    // inherited from trait FlatMap
     @tailrec
     override def tailRecM[A, B](a: A)(f: A => Option[Either[A, B]]): Option[B] = f(a) match {
       case None => None
@@ -22,7 +23,7 @@ object CustomMonads {
   type Identity[T] = T
   val aNumber: Identity[Int] = 42
   implicit object IdentityMonad extends Monad[Identity] {
-    def pure[A](x: A): Identity[A] = x
+    override def pure[A](x: A): Identity[A] = x
     override def flatMap[A, B](a: Identity[A])(f: A => Identity[B]): Identity[B] = f(a)
 
     @tailrec

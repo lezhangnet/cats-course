@@ -58,6 +58,7 @@ object Implicits {
 
 
   def main(args: Array[String]): Unit = {
+    println("MyImplicits")
 
   }
 }

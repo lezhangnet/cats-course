@@ -66,16 +66,23 @@ object Monoids {
   )
   def checkout(shoppingCarts: List[ShoppingCart]): ShoppingCart =
     combineFold(shoppingCarts)
-
+  // NOTE the different color of ShoppingCart below - it's basically T, same as:
+  // def anotherCheckout[T: Monoid](carts: List[T])
+  // which is different from checkout()
+  def anotherCheckout[ShoppingCart: Monoid](carts: List[ShoppingCart]) =
+    combineFold(carts)
 
   def main(args: Array[String]): Unit = {
     println(combineFold(numbers))
     println(combineFold(List("I ", "like ", "monoids")))
     println(massivePhonebook)
-    println(checkout(List(
+
+    val carts = List(
       ShoppingCart(List("iphone", "shoes"), 799),
       ShoppingCart(List("TV"), 20000),
       ShoppingCart(List(), 0)
-    )))
+    )
+    println(checkout(carts))
+    println(anotherCheckout(carts))
   }
 }

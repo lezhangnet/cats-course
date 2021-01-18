@@ -45,6 +45,7 @@ object Semigroupals {
     Validated.invalid(List("Something wrong", "something else wrong")),
     Validated.invalid(List("This can't be right"))
   )
+  // Invalid(List(Something wrong, something else wrong, This can't be right))
 
   type EitherErrorsOr[T] = Either[List[String], T]
   import cats.instances.either._ // implicit Monad[Either]
@@ -53,6 +54,7 @@ object Semigroupals {
     Left(List("Something wrong", "something else wrong")),
     Left(List("This can't be right"))
   )
+  // Left(List(Something wrong, something else wrong))
 
   // Associativity: m.flatMap(f).flatMap(g) == m.flatMap(x => f(x).flatMap(g))
 

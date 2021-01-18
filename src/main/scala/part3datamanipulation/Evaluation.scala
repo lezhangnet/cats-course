@@ -4,9 +4,9 @@ object Evaluation {
 
   /*
     Cats makes the distinction between
-    - evaluating an expression eagerly
-    - evaluating lazily and every time you request it
-    - evaluating lazily and keeping the value (memoizing)
+    - evaluating an expression eagerly // on definition; NO re-do // Eval.now() - Scala default
+    - evaluating lazily and every time you request it             // Eval.always()
+    - evaluating lazily and keeping the value (memoizing)         // Eval.later()
    */
 
   import cats.Eval
@@ -38,7 +38,9 @@ object Evaluation {
     c <- instantEval
     d <- redoEval
   } yield a + b + c + d
-  // now, later, again, again, sum, again, again, sum
+  // now - from def
+  // later, again, (now - not re-do,) again, sum - from 1st run
+  // (later - not re-do,) again, (now - not re-do,) again, sum - from 2nd run
 
   // "remember" a computed value
   val dontRecompute = redoEval.memoize
@@ -62,6 +64,24 @@ object Evaluation {
     else Eval.defer(reverseEval(list.tail).map(_ :+ list.head))
 
   def main(args: Array[String]): Unit = {
+    println(evalEx1) // 1st run
+    println(evalEx1) // 2nd run
+
+    println("----- testing .memoize -----")
+    println(dontRecompute)
+    println(dontRecompute)
+
+    println("----- testing mixed .memoize -----")
+    println(tutorial)
+    println(tutorial)
+
+    println("----- 1st call of defer()")
+    println(defer(Eval.now {
+      println("Now!")
+      42
+    }))
+
+    println("----- 2nd call of defer()")
     println(defer(Eval.now {
       println("Now!")
       42

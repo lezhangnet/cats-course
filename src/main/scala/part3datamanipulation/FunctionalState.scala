@@ -71,5 +71,6 @@ object FunctionalState {
     println(compositeTransformation2.run(10).value)
     println(compositeFunc(10))
     println(danielsCart.run(ShoppingCart(List(), 0)).value)
+    println(program.run(10).value) // (63,(10,20,126))
   }
 }

@@ -18,6 +18,12 @@ object WeakerApplicatives {
       }
     }
 
+    // same code
+    def mapN2[A, B, C](tuple: (W[A], W[B]))(f: (A, B) => C): W[C] = {
+      val tupleWrapper = product(tuple._1, tuple._2) // W[(A, B)] // from Semigroupal
+      map(tupleWrapper) { case (a, b) => f(a, b) } // from Functor
+    }
+
     def ap[B, T](wf: W[B => T])(wb: W[B]): W[T] // fundamental
   }
 

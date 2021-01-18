@@ -8,10 +8,12 @@ object Writers {
 
   import cats.data.Writer
   // 1 - define them at the start
+  // Writer[TheLogsType, TheValueType]
   val aWriter: Writer[List[String], Int] = Writer(List("Started something"), 45)
   // 2 - manipulate them with pure FP
   val anIncreasedWriter = aWriter.map(_ + 1) // value increases, logs stay the same
   val aLogsWriter = aWriter.mapWritten(_ :+ "found something interesting") // value stays the same, logs change
+  // two ways to update BOTH
   val aWriterWithBoth = aWriter.bimap(_ :+ "found something interesting", _ + 1) // both value and logs change
   val aWriterWithBoth2 = aWriter.mapBoth { (logs, value) =>
     (logs :+ "found something interesting", value + 1)

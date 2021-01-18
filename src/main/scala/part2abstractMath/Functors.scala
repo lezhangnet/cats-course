@@ -34,11 +34,15 @@ object Functors {
   // generalize
   def do10x[F[_]](container: F[Int])(implicit functor: Functor[F]): F[Int] = functor.map(container)(_ * 10)
 
+  // this won't work - No implicits found for parameter functor: Functor[List[Int]] - see main()
+  // also: F[Int] takes no type parameters, expected: 1
+  // def do10x2[F[_]](container: F[Int])(implicit functor: Functor[F[Int]]): F[Int] = functor.map(container)(_ * 10)
+
   // TODO 1: define your own functor for a binary tree
   // hint: define an object which extends Functor[Tree]
   trait Tree[+T]
   object Tree {
-    // "smart" constructors
+    // "smart" constructors: return general type Tree
     def leaf[T](value: T): Tree[T] = Leaf(value)
     def branch[T](value: T, left: Tree[T], right: Tree[T]): Tree[T] = Branch(value, left, right)
   }
@@ -54,7 +58,10 @@ object Functors {
 
   // extension method - map
   import cats.syntax.functor._
-  val tree: Tree[Int] = Tree.branch(40, Tree.branch(5, Tree.leaf(10), Tree.leaf(30)), Tree.leaf(20))
+  val tree: Tree[Int] = Tree.branch(40,
+    Tree.branch(5, Tree.leaf(10), Tree.leaf(30)),
+    Tree.leaf(20)
+  )
   val incrementedTree = tree.map(_ + 1)
 
   // TODO 2: write a shorted do10x method using extension methods
@@ -62,9 +69,25 @@ object Functors {
 
   def main(args: Array[String]): Unit = {
     println(do10x(List(1,2,3)))
+    // println(do10x2(List(1,2,3))) // No implicits found for parameter functor: Functor[List[Int]]
+
     println(do10x(Option(2)))
     println(do10x(Try(35)))
-    println(do10x(Tree.branch(30, Tree.leaf(10), Tree.leaf(20))))
+
+    println(do10x[Tree](Branch(30, Leaf(10), Leaf(20)))) // [Tree] required ! see below
+    // using the smart constructors
+    println(do10x(Tree.branch(30, Leaf(10), Leaf(20)))) // works
+    println(do10x(Tree.branch(30, Tree.leaf(10), Tree.leaf(20)))) // works the same ?
+
     println(do10xShorter(Tree.branch(30, Tree.leaf(10), Tree.leaf(20))))
+
+    println("Function[Option]:" + Functor[Option].map(Option("Hello"))(_.length)) // Some(5)
+    println("Function[Option]:" + Functor[Option].map(None: Option[String])(_.length)) // None
+
+    // fproduct
+    val source = List("Cats", "is", "awesome")
+    val product = Functor[List].fproduct(source)(_.length).toMap
+    println(product) // Map(Cats -> 4, is -> 2, awesome -> 7)
+    println(product.get("Cats").getOrElse(0)) // 4
   }
 }

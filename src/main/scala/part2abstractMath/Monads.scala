@@ -27,7 +27,9 @@ object Monads {
   } yield (n, c)
 
   // futures
-  implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(8))
+  val executor = Executors.newFixedThreadPool(8)
+  implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(executor)
+  // implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(8))
   val numberFuture = Future(42)
   val charFuture = Future('Z')
   // TODO 1.3: how do you create the combination of (number, char)?
@@ -78,6 +80,14 @@ object Monads {
   def getPairs[M[_], A, B](ma: M[A], mb: M[B])(implicit monad: Monad[M]): M[(A, B)] =
     monad.flatMap(ma)(a => monad.map(mb)(b => (a, b)))
 
+  import cats.syntax.flatMap._ // flatMap is here
+  import cats.syntax.functor._ // map is here
+  def getPairs2[M[_], A, B](ma: M[A], mb: M[B])(implicit monad: Monad[M]): M[(A, B)] =
+    for {
+      a <- ma
+      b <- mb
+    } yield (a, b)
+
   // extension methods - weirder imports - pure, flatMap
   import cats.syntax.applicative._ // pure is here
   val oneOption = 1.pure[Option] // implicit Monad[Option] will be used => Some(1)
@@ -105,8 +115,11 @@ object Monads {
     } yield (a, b) // same as ma.flatMap(a => mb.map(b => (a, b)))
 
   def main(args: Array[String]): Unit = {
+    println("MyMonads")
     println(getPairsFor(numbersList, charsList))
     println(getPairsFor(numberOption, charOption))
+
     getPairsFor(numberFuture, charFuture).foreach(println)
+    executor.shutdown()
   }
 }
